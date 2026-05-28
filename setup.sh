@@ -106,11 +106,28 @@ echo ""
 echo -e "${CYAN}Auto-start Setup:${NC}"
 echo "  1) Hyprland  (add to hyprland.conf)"
 echo "  2) KDE / XDG  (install autostart .desktop file)"
-echo "  3) Skip"
-read -rp "Choose [1-3] (default: 3): " autostart_choice
-autostart_choice="${autostart_choice:-3}"
+echo "  3) systemd    (user service — survives terminal close)"
+echo "  4) Skip"
+read -rp "Choose [1-4] (default: 4): " autostart_choice
+autostart_choice="${autostart_choice:-4}"
+
+install_binary() {
+    local bin_dir="${XDG_BIN_HOME:-$HOME/.local/bin}"
+    mkdir -p "$bin_dir"
+    cp "$NOTIFY_DIR/target/release/notify" "$bin_dir/notify"
+    echo -e "${GREEN}✓${NC} Installed binary to $bin_dir/notify"
+}
+
+install_config() {
+    local cfg_dir="${XDG_CONFIG_HOME:-$HOME/.config}/notify"
+    mkdir -p "$cfg_dir"
+    cp "$CONFIG_FILE" "$cfg_dir/config.toml"
+    cp "$STYLE_FILE" "$cfg_dir/style.css"
+    echo -e "${GREEN}✓${NC} Installed config to $cfg_dir"
+}
 
 if [ "$autostart_choice" = "1" ]; then
+    install_binary
     HYPR_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprland.conf"
     HYPR_DIR="$(dirname "$HYPR_CONFIG")"
     if [ ! -d "$HYPR_DIR" ]; then
@@ -118,7 +135,7 @@ if [ "$autostart_choice" = "1" ]; then
         mkdir -p "$HYPR_DIR"
     fi
 
-    AUTOSTART_LINE="exec-once = $NOTIFY_DIR/target/release/notify"
+    AUTOSTART_LINE="exec-once = ${XDG_BIN_HOME:-$HOME/.local/bin}/notify"
     if [ -f "$HYPR_CONFIG" ] && grep -q "notify" "$HYPR_CONFIG"; then
         echo -e "${YELLOW}notify already in hyprland.conf, skipping.${NC}"
     else
@@ -128,6 +145,8 @@ if [ "$autostart_choice" = "1" ]; then
         echo -e "${GREEN}✓${NC} Added to $HYPR_CONFIG"
     fi
 elif [ "$autostart_choice" = "2" ]; then
+    install_binary
+    install_config
     AUTOSTART_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/autostart"
     mkdir -p "$AUTOSTART_DIR"
     DESKTOP_FILE="$AUTOSTART_DIR/notify.desktop"
@@ -136,12 +155,28 @@ elif [ "$autostart_choice" = "2" ]; then
 Type=Application
 Name=Notify
 Comment=Notification Daemon
-Exec=$NOTIFY_DIR/target/release/notify
+Exec=${XDG_BIN_HOME:-$HOME/.local/bin}/notify
 Terminal=false
 NoDisplay=true
 X-GNOME-Autostart-enabled=true
 EOF
     echo -e "${GREEN}✓${NC} Installed $DESKTOP_FILE"
+elif [ "$autostart_choice" = "3" ]; then
+    install_binary
+    install_config
+    SYSTEMD_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+    mkdir -p "$SYSTEMD_DIR"
+    cp "$NOTIFY_DIR/notify.service" "$SYSTEMD_DIR/notify.service"
+    # Fix binary path in service file
+    sed -i "s|ExecStart=%h/.local/bin/notify|ExecStart=${XDG_BIN_HOME:-$HOME/.local/bin}/notify|" "$SYSTEMD_DIR/notify.service"
+    # Fix config paths
+    sed -i "s|NOTIFY_CONFIG=%h/.config/notify/config.toml|NOTIFY_CONFIG=${XDG_CONFIG_HOME:-$HOME/.config}/notify/config.toml|" "$SYSTEMD_DIR/notify.service"
+    sed -i "s|NOTIFY_CSS=%h/.config/notify/style.css|NOTIFY_CSS=${XDG_CONFIG_HOME:-$HOME/.config}/notify/style.css|" "$SYSTEMD_DIR/notify.service"
+    systemctl --user daemon-reload
+    systemctl --user enable notify.service
+    systemctl --user start notify.service
+    echo -e "${GREEN}✓${NC} Installed and started systemd user service"
+    echo -e "  Status: systemctl --user status notify"
 fi
 
 # ─── Blocking Process Check ──────────────────────────────

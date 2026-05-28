@@ -1,0 +1,16 @@
+[Unit]
+Description=Notify notification daemon
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/notify
+Restart=on-failure
+RestartSec=2
+Environment=DISPLAY=:0
+Environment=NOTIFY_CONFIG=%h/.config/notify/config.toml
+Environment=NOTIFY_CSS=%h/.config/notify/style.css
+
+[Install]
+WantedBy=graphical-session.target

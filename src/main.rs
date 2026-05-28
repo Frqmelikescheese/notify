@@ -30,6 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     app.connect_activate(move |app| {
+        std::mem::forget(app.hold());
         eprintln!("Application activated");
         let rx_opt = rx_holder.borrow_mut().take();
         if rx_opt.is_none() {

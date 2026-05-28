@@ -1,0 +1,45 @@
+.notification-window {
+    background-color: transparent;
+}
+
+.container {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+    padding: 8px 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    border-radius: 999px;
+    min-height: 48px;
+}
+
+.icon {
+    border-radius: 999px;
+    margin-right: 10px;
+    min-width: 48px;
+    min-height: 48px;
+}
+
+.text-box {
+    margin-right: 8px;
+}
+
+.summary {
+    font-weight: bold;
+    font-size: 14px;
+    color: #cba6f7;
+    margin-bottom: 2px;
+}
+
+.body {
+    font-size: 13px;
+    color: #a6adc8;
+}
+
+.expanded .summary,
+.expanded .body {
+    opacity: 1;
+}
+
+.container:not(.expanded) .body {
+    opacity: 0;
+}

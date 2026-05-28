@@ -1,0 +1,65 @@
+[global]
+anchor = ["top"]
+margin_top = 0
+margin_bottom = 0
+margin_left = 0
+margin_right = 0
+monitor = "HDMI-A-1"
+
+[states.idle]
+width = 1
+height = 1
+opacity = 0.0
+margin_top = -100
+border_radius = 50
+duration_ms = 0
+wait_ms = 0
+easing = "linear"
+
+# Phase 1: Logo and App Name pop in as a circle (showing just Logo + Name)
+[states.pop_in]
+width = 200
+height = 64
+opacity = 1.0
+margin_top = 50
+border_radius = 32
+duration_ms = 500
+wait_ms = 800
+easing = "ease-out"
+next_state = "expand"
+
+# Phase 2: Expand to show full text
+[states.expand]
+width = 450
+height = 80
+opacity = 1.0
+margin_top = 50
+border_radius = 20
+duration_ms = 400
+wait_ms = 5000
+easing = "ease-in-out"
+next_state = "collapse_to_circle"
+
+# Phase 3: Collapse back to a circle (just logo)
+[states.collapse_to_circle]
+width = 64
+height = 64
+opacity = 1.0
+margin_top = 50
+border_radius = 32
+duration_ms = 500
+wait_ms = 1000
+easing = "ease-in-out"
+next_state = "pop_out"
+
+# Phase 4: Disappear
+[states.pop_out]
+width = 64
+height = 64
+opacity = 0.0
+margin_top = -120
+border_radius = 32
+duration_ms = 400
+wait_ms = 0
+easing = "ease-in"
+next_state = "idle"
